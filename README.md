@@ -23,6 +23,14 @@
 
 ---
 
+<p align="center">
+  <img src="screenshots/lena-1.png" width="48%" alt="Lena Screenshot 1">
+  &nbsp;
+  <img src="screenshots/lena-2.png" width="48%" alt="Lena Screenshot 2">
+</p>
+
+---
+
 **Install**
 
 Download `Lena-1.0.dmg` from [Releases](https://github.com/yannickboog/lena/releases), open it, and drag **Lena** into your Applications folder.
