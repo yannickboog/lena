@@ -45,6 +45,12 @@ Press `⌘R` to build and run.
 
 ---
 
+**Antivirus False Positive**
+
+Some antivirus scanners (notably Microsoft Defender's `Wacatac.B!ml` ML detector) may flag the DMG. This is a known false positive affecting ad-hoc signed macOS apps and DMG files. The full source code is open and auditable — no malicious code, no network connections, no telemetry. You can verify at [VirusTotal](https://www.virustotal.com).
+
+---
+
 **License**
 
 Apache License 2.0 – see [LICENSE](LICENSE).
