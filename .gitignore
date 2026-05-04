@@ -1,0 +1,38 @@
+# Xcode
+build/
+DerivedData/
+*.moved-aside
+*.xcuserstate
+xcuserdata/
+*.xccheckout
+*.xcscheme
+!default.xcscheme
+*.macpace
+**/IDEWorkspaceChecks.plist
+*.pot
+*.stringsdict
+*.apple_dist
+
+# Swift Package Manager
+.build/
+.swiftpm/
+
+# macOS
+.DS_Store
+
+# Local build scripts (private)
+scripts/
+
+# Claude Code session data
+.claude/
+
+# Archives & distribution
+*.dmg
+*.xcarchive
+*.ipa
+*.dSYM
+*.dSYM.zip
+
+# Object files
+*.o
+*.d
