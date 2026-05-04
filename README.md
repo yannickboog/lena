@@ -19,7 +19,7 @@
 - Syntax highlighting in the command editor
 - Templates with `{{placeholder}}` variables
 - Keyboard navigation `↑` `↓` `↵` to copy
-- Data stored locally in `~/Library/Application Support/Lena/tools.json`
+- Data stored locally in `~/Library/Containers/xyz.yannick.lena/Data/Library/Application Support/Lena/tools.json`
 
 ---
 
