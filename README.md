@@ -13,27 +13,28 @@
 **Features**
 
 - Menu bar icon — always one click away
-- Global hotkey `⌘⇧L` to open from anywhere
+- Configurable global hotkey (default `⌘⇧L`) to open from anywhere
 - Group commands by tool (git, Docker, ffmpeg, …)
 - Full-text search across all commands and notes
 - Syntax highlighting in the command editor
-- Templates with `{{placeholder}}` variables
-- Keyboard navigation `↑` `↓` `↵` to copy
-- Data stored locally in `~/Library/Containers/xyz.yannick.lena/Data/Library/Application Support/Lena/tools.json`
+- Templates with `{{placeholder}}` variables — use `{{name?}}` for optional placeholders that can be left blank
+- Keyboard navigation `↑` `↓` `↵` to copy, `⌘N` new tool, `⌘⇧N` new command, `⌘E` edit, `⌘⌫` delete
+- Data stored locally in Application Support (path shown in Settings → Storage)
+- Available in English, German, and Dutch
 
 ---
 
 <p align="center">
-  <img src="screenshots/lena-1.png" width="48%" alt="Lena Screenshot 1">
+  <img src="screenshots/lena-2.png" width="48%" alt="Lena Screenshot 2" valign="top">
   &nbsp;
-  <img src="screenshots/lena-2.png" width="48%" alt="Lena Screenshot 2">
+  <img src="screenshots/lena-1.png" width="48%" alt="Lena Screenshot 1" valign="top">
 </p>
 
 ---
 
 **Install**
 
-Download `Lena-1.0.dmg` from [Releases](https://github.com/yannickboog/lena/releases), open it, and drag **Lena** into your Applications folder.
+Download `Lena-1.1.dmg` from [Releases](https://github.com/yannickboog/lena/releases), open it, and drag **Lena** into your Applications folder.
 
 > Since the app is not notarized, right-click and select **Open** on first launch, or allow it via System Settings → Privacy & Security.
 > Alternatively: `xattr -dr com.apple.quarantine /Applications/Lena.app`
