@@ -1,0 +1,70 @@
+/* ContentView */
+"Search commands…" = "Search commands…";
+"Unpin window" = "Unpin window";
+"Pin window" = "Pin window";
+"Add new tool" = "Add new tool";
+"Add Command" = "Add Command";
+"Edit Command" = "Edit Command";
+"Duplicate Command" = "Duplicate Command";
+"Delete Command" = "Delete Command";
+"Edit Tool" = "Edit Tool";
+"Duplicate Tool" = "Duplicate Tool";
+"Delete Tool" = "Delete Tool";
+"No tools yet" = "No tools yet";
+"Add your first tool to start\nbuilding your command cheatsheet." = "Add your first tool to start\nbuilding your command cheatsheet.";
+"Add Tool" = "Add Tool";
+"No results for \"%@\"" = "No results for \"%@\"";
+"Settings" = "Settings";
+"Report Issue" = "Report Issue";
+"Copied \"%@\"" = "Copied \"%@\"";
+
+/* CommandFormView */
+"New Command" = "New Command";
+"Tool: %@" = "Tool: %@";
+"Tool" = "Tool";
+"Title" = "Title";
+"e.g. Pretty Log Graph" = "e.g. Pretty Log Graph";
+"Command" = "Command";
+"e.g. git log --graph --pretty=…" = "e.g. git log --graph --pretty=…";
+"Note  (optional)" = "Note  (optional)";
+"Short hint or description" = "Short hint or description";
+"No placeholders" = "No placeholders";
+"Cancel" = "Cancel";
+"Save" = "Save";
+
+/* ToolFormView */
+"New Tool" = "New Tool";
+"Name" = "Name";
+"e.g. git, Docker, npm" = "e.g. git, Docker, npm";
+"Icon" = "Icon";
+"Color" = "Color";
+
+/* PlaceholderFillView */
+"Fill in placeholders" = "Fill in placeholders";
+"(optional)" = "(optional)";
+"Copy" = "Copy";
+
+/* Accessibility */
+"Clear search" = "Clear search";
+"Expand %@" = "Expand %@";
+"Collapse %@" = "Collapse %@";
+"Options for %@" = "Options for %@";
+"Copies command to clipboard" = "Copies command to clipboard";
+
+/* SettingsView */
+"Type shortcut…" = "Type shortcut…";
+"Reset" = "Reset";
+"Keyboard Shortcuts" = "Keyboard Shortcuts";
+"Open / Close" = "Open / Close";
+"Navigate" = "Navigate";
+"Copy selected" = "Copy selected";
+"Clear search / Close" = "Clear search / Close";
+"Edit selected" = "Edit selected";
+"Delete selected" = "Delete selected";
+"Storage" = "Storage";
+"Location" = "Location";
+"Show in Finder" = "Show in Finder";
+"About" = "About";
+"Version" = "Version";
+"Author" = "Author";
+"License" = "License";

@@ -1,21 +1,31 @@
+//  Lena — CLI Command Cheatsheet for macOS
+//  Copyright © 2026 Yannick Boog. All rights reserved.
+//  Licensed under the Apache License, Version 2.0
+//  https://github.com/yannickboog/lena
+
 import SwiftUI
 import AppKit
+
+extension SyntaxColor {
+    var nsColor: NSColor {
+        switch self {
+        case .accent: return .controlAccentColor
+        case .green:  return .systemGreen
+        case .purple: return .systemPurple
+        case .blue:   return .systemBlue
+        case .orange: return .systemOrange
+        }
+    }
+
+    var nsBgColor: NSColor? {
+        self == .accent ? NSColor.controlAccentColor.withAlphaComponent(0.12) : nil
+    }
+}
 
 struct SyntaxHighlightingEditor: NSViewRepresentable {
     @Binding var text: String
     var limit: Int = Int.max
-
-    private static let tokens: [(pattern: String, color: NSColor, bgColor: NSColor?, bold: Bool)] = [
-        (#"\{\{[^}]+\}\}"#,             .controlAccentColor, NSColor.controlAccentColor.withAlphaComponent(0.12), false),
-        (#""[^"\\]*(?:\\.[^"\\]*)*""#,  .systemGreen,        nil,                                                 false),
-        (#"'[^']*'"#,                   .systemGreen,        nil,                                                 false),
-        (#"\$\([^)]*\)"#,               .systemPurple,       nil,                                                 false),
-        (#"`[^`]*`"#,                   .systemPurple,       nil,                                                 false),
-        (#"\$[A-Za-z_]\w*"#,            .systemPurple,       nil,                                                 false),
-        (#"--[A-Za-z][A-Za-z0-9_-]*"#, .systemBlue,         nil,                                                 false),
-        (#"(?<!\S)-[A-Za-z]\w*"#,       .systemBlue,         nil,                                                 false),
-        (#"2>&1|\|{1,2}|>{1,2}|&&|;"#, .systemOrange,       nil,                                                 false),
-    ]
+    var raw: Bool = false
 
     func makeNSView(context: Context) -> NSScrollView {
         let scrollView = NSTextView.scrollableTextView()
@@ -44,20 +54,24 @@ struct SyntaxHighlightingEditor: NSViewRepresentable {
     func updateNSView(_ scrollView: NSScrollView, context: Context) {
         guard let textView = scrollView.documentView as? NSTextView else { return }
         context.coordinator.limit = limit
+        let rawChanged = context.coordinator.raw != raw
+        context.coordinator.raw = raw
         if textView.string != text {
             let sel = textView.selectedRange()
             textView.string = text
             let safe = NSRange(location: min(sel.location, (text as NSString).length), length: 0)
             textView.setSelectedRange(safe)
+            Self.applyHighlighting(to: textView, raw: raw)
+        } else if rawChanged {
+            Self.applyHighlighting(to: textView, raw: raw)
         }
-        Self.applyHighlighting(to: textView)
     }
 
     func makeCoordinator() -> Coordinator {
-        Coordinator(text: $text, limit: limit)
+        Coordinator(text: $text, limit: limit, raw: raw)
     }
 
-    static func applyHighlighting(to textView: NSTextView) {
+    static func applyHighlighting(to textView: NSTextView, raw: Bool = false) {
         guard let storage = textView.textStorage else { return }
         let text = textView.string
         let ns = text as NSString
@@ -74,20 +88,19 @@ struct SyntaxHighlightingEditor: NSViewRepresentable {
         ], range: fullRange)
 
         var consumed = IndexSet()
-        for (pattern, color, bgColor, isBold) in tokens {
-            guard let re = try? NSRegularExpression(pattern: pattern) else { continue }
-            for m in re.matches(in: text, range: fullRange) {
+        let defs = raw ? CLISyntaxHighlighter.tokenDefs.filter { $0.color != .accent } : CLISyntaxHighlighter.tokenDefs
+        for def in defs {
+            for m in def.regex.matches(in: text, range: fullRange) {
                 let r = m.range
                 let chars = r.location ..< (r.location + r.length)
                 guard !consumed.intersects(integersIn: chars) else { continue }
                 consumed.insert(integersIn: chars)
-                storage.addAttribute(.foregroundColor, value: color, range: r)
-                if let bg = bgColor { storage.addAttribute(.backgroundColor, value: bg, range: r) }
-                if isBold { storage.addAttribute(.font, value: boldFont, range: r) }
+                storage.addAttribute(.foregroundColor, value: def.color.nsColor, range: r)
+                if let bg = def.color.nsBgColor { storage.addAttribute(.backgroundColor, value: bg, range: r) }
             }
         }
 
-        if let m = try? NSRegularExpression(pattern: #"^\s*\S+"#).firstMatch(in: text, range: fullRange) {
+        if let m = CLISyntaxHighlighter.firstWordRegex.firstMatch(in: text, range: fullRange) {
             let chars = m.range.location ..< (m.range.location + m.range.length)
             if !consumed.intersects(integersIn: chars) {
                 storage.addAttribute(.foregroundColor, value: NSColor.labelColor, range: m.range)
@@ -101,10 +114,12 @@ struct SyntaxHighlightingEditor: NSViewRepresentable {
     final class Coordinator: NSObject, NSTextViewDelegate {
         var text: Binding<String>
         var limit: Int
+        var raw: Bool
 
-        init(text: Binding<String>, limit: Int) {
+        init(text: Binding<String>, limit: Int, raw: Bool) {
             self.text = text
             self.limit = limit
+            self.raw = raw
         }
 
         func textDidChange(_ notification: Notification) {
@@ -117,7 +132,7 @@ struct SyntaxHighlightingEditor: NSViewRepresentable {
                 textView.setSelectedRange(NSRange(location: min(sel.location, (newText as NSString).length), length: 0))
             }
             text.wrappedValue = newText
-            SyntaxHighlightingEditor.applyHighlighting(to: textView)
+            SyntaxHighlightingEditor.applyHighlighting(to: textView, raw: raw)
         }
     }
 }

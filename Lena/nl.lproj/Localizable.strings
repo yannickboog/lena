@@ -1,0 +1,70 @@
+/* ContentView */
+"Search commands…" = "Opdrachten zoeken…";
+"Unpin window" = "Venster losmaken";
+"Pin window" = "Venster vastzetten";
+"Add new tool" = "Nieuw tool toevoegen";
+"Add Command" = "Opdracht toevoegen";
+"Edit Command" = "Opdracht bewerken";
+"Duplicate Command" = "Opdracht dupliceren";
+"Delete Command" = "Opdracht verwijderen";
+"Edit Tool" = "Tool bewerken";
+"Duplicate Tool" = "Tool dupliceren";
+"Delete Tool" = "Tool verwijderen";
+"No tools yet" = "Nog geen tools";
+"Add your first tool to start\nbuilding your command cheatsheet." = "Voeg je eerste tool toe om\nje opdrachtenoverzicht te maken.";
+"Add Tool" = "Tool toevoegen";
+"No results for \"%@\"" = "Geen resultaten voor \"%@\"";
+"Settings" = "Instellingen";
+"Report Issue" = "Probleem melden";
+"Copied \"%@\"" = "\"%@\" gekopieerd";
+
+/* CommandFormView */
+"New Command" = "Nieuwe opdracht";
+"Tool: %@" = "Tool: %@";
+"Tool" = "Tool";
+"Title" = "Titel";
+"e.g. Pretty Log Graph" = "bijv. Mooie log-grafiek";
+"Command" = "Opdracht";
+"e.g. git log --graph --pretty=…" = "bijv. git log --graph --pretty=…";
+"Note  (optional)" = "Notitie (optioneel)";
+"Short hint or description" = "Korte hint of beschrijving";
+"No placeholders" = "Geen tijdelijke aanduidingen";
+"Cancel" = "Annuleren";
+"Save" = "Opslaan";
+
+/* ToolFormView */
+"New Tool" = "Nieuw tool";
+"Name" = "Naam";
+"e.g. git, Docker, npm" = "bijv. git, Docker, npm";
+"Icon" = "Symbool";
+"Color" = "Kleur";
+
+/* PlaceholderFillView */
+"Fill in placeholders" = "Tijdelijke aanduidingen invullen";
+"(optional)" = "(optioneel)";
+"Copy" = "Kopiëren";
+
+/* Accessibility */
+"Clear search" = "Zoekopdracht wissen";
+"Expand %@" = "%@ uitklappen";
+"Collapse %@" = "%@ inklappen";
+"Options for %@" = "Opties voor %@";
+"Copies command to clipboard" = "Opdracht naar klembord kopiëren";
+
+/* SettingsView */
+"Type shortcut…" = "Toetscombinatie invoeren…";
+"Reset" = "Herstel";
+"Keyboard Shortcuts" = "Sneltoetsen";
+"Open / Close" = "Openen / Sluiten";
+"Navigate" = "Navigeren";
+"Copy selected" = "Geselecteerde kopiëren";
+"Clear search / Close" = "Zoekopdracht wissen / Sluiten";
+"Edit selected" = "Geselecteerde bewerken";
+"Delete selected" = "Geselecteerde verwijderen";
+"Storage" = "Opslag";
+"Location" = "Locatie";
+"Show in Finder" = "Toon in Finder";
+"About" = "Over";
+"Version" = "Versie";
+"Author" = "Auteur";
+"License" = "Licentie";

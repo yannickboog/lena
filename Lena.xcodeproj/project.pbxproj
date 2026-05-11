@@ -12,10 +12,19 @@
 		8D704FEA2815DE11003BFAE6 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D704FE92815DE11003BFAE6 /* ContentView.swift */; };
 		8D704FEC2815DE12003BFAE6 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 8D704FEB2815DE12003BFAE6 /* Assets.xcassets */; };
 		8D704FEF2815DE12003BFAE6 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 8D704FEE2815DE12003BFAE6 /* Preview Assets.xcassets */; };
-		8D704FFE2815DEED003BFAE6 /* CLIViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D704FFD2815DEED003BFAE6 /* CLIViewModel.swift */; };
+		8D704FFE2815DEED003BFAE6 /* ToolStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D704FFD2815DEED003BFAE6 /* ToolStore.swift */; };
 		CB000001000000000000000A /* CLISyntaxHighlighter.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB000001000000000000000B /* CLISyntaxHighlighter.swift */; };
 		CB000002000000000000000A /* KeyboardNavigator.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB000002000000000000000B /* KeyboardNavigator.swift */; };
 		CB000003000000000000000A /* SyntaxHighlightingEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB000003000000000000000B /* SyntaxHighlightingEditor.swift */; };
+		CB000004000000000000000A /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB000004000000000000000B /* SettingsView.swift */; };
+		CB000005000000000000000A /* Notifications.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB000005000000000000000B /* Notifications.swift */; };
+		CB000006000000000000000A /* PinState.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB000006000000000000000B /* PinState.swift */; };
+		CB000007000000000000000A /* CommandRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB000007000000000000000B /* CommandRow.swift */; };
+		CB000008000000000000000A /* ToolFormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB000008000000000000000B /* ToolFormView.swift */; };
+		CB000009000000000000000A /* CommandFormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB000009000000000000000B /* CommandFormView.swift */; };
+		CB000010000000000000000A /* PlaceholderFillView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB000010000000000000000B /* PlaceholderFillView.swift */; };
+		CB000011000000000000000A /* HotkeySetting.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB000011000000000000000B /* HotkeySetting.swift */; };
+		CB010005000000000000000A /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = CB010004000000000000000B /* Localizable.strings */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -26,11 +35,22 @@
 		8D704FEB2815DE12003BFAE6 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		8D704FEE2815DE12003BFAE6 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		8D704FF02815DE12003BFAE6 /* Lena.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Lena.entitlements; sourceTree = "<group>"; };
-		8D704FFD2815DEED003BFAE6 /* CLIViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CLIViewModel.swift; sourceTree = "<group>"; };
+		8D704FFD2815DEED003BFAE6 /* ToolStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToolStore.swift; sourceTree = "<group>"; };
 		8D7050052815E322003BFAE6 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		CB000001000000000000000B /* CLISyntaxHighlighter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CLISyntaxHighlighter.swift; sourceTree = "<group>"; };
 		CB000002000000000000000B /* KeyboardNavigator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardNavigator.swift; sourceTree = "<group>"; };
 		CB000003000000000000000B /* SyntaxHighlightingEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyntaxHighlightingEditor.swift; sourceTree = "<group>"; };
+		CB000004000000000000000B /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		CB000005000000000000000B /* Notifications.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Notifications.swift; sourceTree = "<group>"; };
+		CB000006000000000000000B /* PinState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PinState.swift; sourceTree = "<group>"; };
+		CB000007000000000000000B /* CommandRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommandRow.swift; sourceTree = "<group>"; };
+		CB000008000000000000000B /* ToolFormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToolFormView.swift; sourceTree = "<group>"; };
+		CB000009000000000000000B /* CommandFormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommandFormView.swift; sourceTree = "<group>"; };
+		CB000010000000000000000B /* PlaceholderFillView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaceholderFillView.swift; sourceTree = "<group>"; };
+		CB000011000000000000000B /* HotkeySetting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotkeySetting.swift; sourceTree = "<group>"; };
+		CB010001000000000000000B /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
+		CB010002000000000000000B /* de */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/Localizable.strings; sourceTree = "<group>"; };
+		CB010003000000000000000B /* nl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = nl; path = nl.lproj/Localizable.strings; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -71,6 +91,15 @@
 				CB000001000000000000000B /* CLISyntaxHighlighter.swift */,
 				CB000002000000000000000B /* KeyboardNavigator.swift */,
 				CB000003000000000000000B /* SyntaxHighlightingEditor.swift */,
+				CB000004000000000000000B /* SettingsView.swift */,
+				CB000005000000000000000B /* Notifications.swift */,
+				CB000006000000000000000B /* PinState.swift */,
+				CB000007000000000000000B /* CommandRow.swift */,
+				CB000008000000000000000B /* ToolFormView.swift */,
+				CB000009000000000000000B /* CommandFormView.swift */,
+				CB000010000000000000000B /* PlaceholderFillView.swift */,
+				CB000011000000000000000B /* HotkeySetting.swift */,
+				CB010004000000000000000B /* Localizable.strings */,
 				8D704FEB2815DE12003BFAE6 /* Assets.xcassets */,
 				8D704FF02815DE12003BFAE6 /* Lena.entitlements */,
 				8D704FED2815DE12003BFAE6 /* Preview Content */,
@@ -97,7 +126,7 @@
 		8D704FFC2815DEDF003BFAE6 /* View Models */ = {
 			isa = PBXGroup;
 			children = (
-				8D704FFD2815DEED003BFAE6 /* CLIViewModel.swift */,
+				8D704FFD2815DEED003BFAE6 /* ToolStore.swift */,
 			);
 			path = "View Models";
 			sourceTree = "<group>";
@@ -144,6 +173,8 @@
 			knownRegions = (
 				en,
 				Base,
+				de,
+				nl,
 			);
 			mainGroup = 8D704FDB2815DE11003BFAE6;
 			productRefGroup = 8D704FE52815DE11003BFAE6 /* Products */;
@@ -162,6 +193,7 @@
 			files = (
 				8D704FEF2815DE12003BFAE6 /* Preview Assets.xcassets in Resources */,
 				8D704FEC2815DE12003BFAE6 /* Assets.xcassets in Resources */,
+				CB010005000000000000000A /* Localizable.strings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -177,12 +209,33 @@
 				CB000001000000000000000A /* CLISyntaxHighlighter.swift in Sources */,
 				CB000002000000000000000A /* KeyboardNavigator.swift in Sources */,
 				CB000003000000000000000A /* SyntaxHighlightingEditor.swift in Sources */,
+				CB000004000000000000000A /* SettingsView.swift in Sources */,
+				CB000005000000000000000A /* Notifications.swift in Sources */,
+				CB000006000000000000000A /* PinState.swift in Sources */,
 				73C488EE2FA7F336002F7B12 /* CLICommand.swift in Sources */,
-				8D704FFE2815DEED003BFAE6 /* CLIViewModel.swift in Sources */,
+				8D704FFE2815DEED003BFAE6 /* ToolStore.swift in Sources */,
+				CB000007000000000000000A /* CommandRow.swift in Sources */,
+				CB000008000000000000000A /* ToolFormView.swift in Sources */,
+				CB000009000000000000000A /* CommandFormView.swift in Sources */,
+				CB000010000000000000000A /* PlaceholderFillView.swift in Sources */,
+				CB000011000000000000000A /* HotkeySetting.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXVariantGroup section */
+		CB010004000000000000000B /* Localizable.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				CB010001000000000000000B /* en */,
+				CB010002000000000000000B /* de */,
+				CB010003000000000000000B /* nl */,
+			);
+			name = Localizable.strings;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
 		8D704FF12815DE12003BFAE6 /* Debug */ = {
@@ -315,7 +368,7 @@
 				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"Lena/Preview Content\"";
 				ENABLE_APP_SANDBOX = YES;
@@ -340,7 +393,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = xyz.yannick.lena;
 				PRODUCT_NAME = Lena;
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -359,7 +412,7 @@
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = YES;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_APP_SANDBOX = YES;
@@ -385,7 +438,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = xyz.yannick.lena;
 				PRODUCT_NAME = Lena;
 				STRIP_INSTALLED_PRODUCT = YES;

@@ -1,0 +1,70 @@
+/* ContentView */
+"Search commands…" = "Befehle suchen…";
+"Unpin window" = "Fenster lösen";
+"Pin window" = "Fenster anheften";
+"Add new tool" = "Neues Tool hinzufügen";
+"Add Command" = "Befehl hinzufügen";
+"Edit Command" = "Befehl bearbeiten";
+"Duplicate Command" = "Befehl duplizieren";
+"Delete Command" = "Befehl löschen";
+"Edit Tool" = "Tool bearbeiten";
+"Duplicate Tool" = "Tool duplizieren";
+"Delete Tool" = "Tool löschen";
+"No tools yet" = "Noch keine Tools";
+"Add your first tool to start\nbuilding your command cheatsheet." = "Füge dein erstes Tool hinzu, um\ndeine Befehls-Übersicht zu erstellen.";
+"Add Tool" = "Tool hinzufügen";
+"No results for \"%@\"" = "Keine Ergebnisse für \"%@\"";
+"Settings" = "Einstellungen";
+"Report Issue" = "Problem melden";
+"Copied \"%@\"" = "\"%@\" kopiert";
+
+/* CommandFormView */
+"New Command" = "Neuer Befehl";
+"Tool: %@" = "Tool: %@";
+"Tool" = "Tool";
+"Title" = "Titel";
+"e.g. Pretty Log Graph" = "z. B. Hübscher Log-Graph";
+"Command" = "Befehl";
+"e.g. git log --graph --pretty=…" = "z. B. git log --graph --pretty=…";
+"Note  (optional)" = "Notiz (optional)";
+"Short hint or description" = "Kurzer Hinweis oder Beschreibung";
+"No placeholders" = "Keine Platzhalter";
+"Cancel" = "Abbrechen";
+"Save" = "Speichern";
+
+/* ToolFormView */
+"New Tool" = "Neues Tool";
+"Name" = "Name";
+"e.g. git, Docker, npm" = "z. B. git, Docker, npm";
+"Icon" = "Symbol";
+"Color" = "Farbe";
+
+/* PlaceholderFillView */
+"Fill in placeholders" = "Platzhalter ausfüllen";
+"(optional)" = "(optional)";
+"Copy" = "Kopieren";
+
+/* Accessibility */
+"Clear search" = "Suche leeren";
+"Expand %@" = "%@ ausklappen";
+"Collapse %@" = "%@ einklappen";
+"Options for %@" = "Optionen für %@";
+"Copies command to clipboard" = "Befehl in Zwischenablage kopieren";
+
+/* SettingsView */
+"Type shortcut…" = "Kürzel eingeben…";
+"Reset" = "Zurücksetzen";
+"Keyboard Shortcuts" = "Tastaturkürzel";
+"Open / Close" = "Öffnen / Schließen";
+"Navigate" = "Navigieren";
+"Copy selected" = "Auswahl kopieren";
+"Clear search / Close" = "Suche leeren / Schließen";
+"Edit selected" = "Auswahl bearbeiten";
+"Delete selected" = "Auswahl löschen";
+"Storage" = "Speicher";
+"Location" = "Speicherort";
+"Show in Finder" = "Im Finder zeigen";
+"About" = "Über";
+"Version" = "Version";
+"Author" = "Autor";
+"License" = "Lizenz";

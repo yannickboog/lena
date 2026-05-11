@@ -1,3 +1,8 @@
+//  Lena — CLI Command Cheatsheet for macOS
+//  Copyright © 2026 Yannick Boog. All rights reserved.
+//  Licensed under the Apache License, Version 2.0
+//  https://github.com/yannickboog/lena
+
 import SwiftUI
 
 let lenaPopoverSize = CGSize(width: 380, height: 520)
@@ -18,19 +23,16 @@ enum SheetState: Identifiable {
     }
 }
 
-struct PlaceholderSheetData: Identifiable {
-    let id = UUID()
-    let command: Command
-    let placeholders: [String]
-}
-
 struct ContentView: View {
     @ObservedObject var store: ToolStore
     @ObservedObject var pinState: PinState
+    let closePopover: () -> Void
     @State private var query = ""
     @State private var activeSheet: SheetState?
     @State private var placeholderSheet: PlaceholderSheetData?
     @State private var toastMessage: String?
+    @State private var isErrorToast = false
+    @State private var toastTask: Task<Void, Never>?
     @State private var collapsedTools: Set<UUID> = []
     @StateObject private var navigator = KeyboardNavigator()
     @FocusState private var searchFocused: Bool
@@ -41,7 +43,7 @@ struct ContentView: View {
 
     private var navigableCommandIds: [UUID] {
         filteredTools
-            .filter { !collapsedTools.contains($0.id) }
+            .filter { isSearching || !collapsedTools.contains($0.id) }
             .flatMap { $0.commands.map { $0.id } }
     }
 
@@ -56,7 +58,7 @@ struct ContentView: View {
                 $0.note.localizedCaseInsensitiveContains(q)
             }
             guard toolMatches || !matchingCommands.isEmpty else { return nil }
-            return Tool(id: tool.id, name: tool.name, icon: tool.icon,
+            return Tool(id: tool.id, name: tool.name, icon: tool.icon, color: tool.color,
                         commands: toolMatches ? tool.commands : matchingCommands)
         }
     }
@@ -81,12 +83,23 @@ struct ContentView: View {
             navigator.navigableIds = navigableCommandIds
             navigator.start()
         }
-        .onDisappear { navigator.stop() }
+        .onReceive(NotificationCenter.default.publisher(for: .lenaPopoverWillShow)) { _ in
+            query = ""
+            searchFocused = true
+        }
+        .onChange(of: store.persistenceError) { error in
+            if let error { showToast(error, isError: true) }
+        }
+        .onDisappear {
+            navigator.stop()
+            toastTask?.cancel()
+        }
         .onChange(of: navigableCommandIds) { ids in
             navigator.navigableIds = ids
             navigator.clearSelection()
         }
         .onChange(of: query) { _ in navigator.clearSelection() }
+        .onChange(of: searchFocused) { navigator.isSearchFocused = $0 }
         .onChange(of: navigator.pendingAction) { action in
             guard let action else { return }
             navigator.pendingAction = nil
@@ -94,11 +107,38 @@ struct ContentView: View {
             case .focusSearch:
                 searchFocused = true
             case .clearSearch:
-                if !query.isEmpty { query = "" } else { searchFocused = false }
+                if !query.isEmpty { query = "" }
+                else if searchFocused { searchFocused = false }
+                else if !pinState.isPinned { closePopover() }
             case .copy(let id):
                 for tool in store.tools {
                     if let cmd = tool.commands.first(where: { $0.id == id }) {
                         copyToClipboard(cmd); return
+                    }
+                }
+            case .newTool:
+                activeSheet = .addTool
+            case .newCommand:
+                if let id = navigator.selectedId {
+                    for tool in store.tools where tool.commands.contains(where: { $0.id == id }) {
+                        activeSheet = .addCommand(tool); return
+                    }
+                }
+                if let first = store.tools.first { activeSheet = .addCommand(first) }
+            case .editSelected:
+                guard let id = navigator.selectedId else { return }
+                for tool in store.tools {
+                    if let cmd = tool.commands.first(where: { $0.id == id }) {
+                        activeSheet = .editCommand(cmd, tool); return
+                    }
+                }
+            case .deleteSelected:
+                guard let id = navigator.selectedId else { return }
+                for tool in store.tools {
+                    if let cmd = tool.commands.first(where: { $0.id == id }) {
+                        store.deleteCommand(cmd, from: tool)
+                        navigator.clearSelection()
+                        return
                     }
                 }
             }
@@ -108,7 +148,7 @@ struct ContentView: View {
             PlaceholderFillView(command: data.command, placeholders: data.placeholders) { filled in
                 NSPasteboard.general.clearContents()
                 NSPasteboard.general.setString(filled, forType: .string)
-                showToast("Copied \"\(data.command.title)\"")
+                showToast(String(format: NSLocalizedString("Copied \"%@\"", comment: ""), data.command.title))
             }
         }
     }
@@ -130,6 +170,7 @@ struct ContentView: View {
             }
             .buttonStyle(.plain)
             .help(pinState.isPinned ? "Unpin window" : "Pin window")
+            .accessibilityLabel(pinState.isPinned ? Text("Unpin window") : Text("Pin window"))
             Button {
                 activeSheet = .addTool
             } label: {
@@ -139,6 +180,7 @@ struct ContentView: View {
             }
             .buttonStyle(.plain)
             .help("Add new tool")
+            .accessibilityLabel(Text("Add new tool"))
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 10)
@@ -150,10 +192,12 @@ struct ContentView: View {
             Image(systemName: "magnifyingglass")
                 .foregroundColor(.secondary)
                 .font(.caption)
+                .accessibilityHidden(true)
             TextField("Search commands…", text: $query)
                 .textFieldStyle(.plain)
                 .font(.system(size: 13))
                 .focused($searchFocused)
+                .onSubmit { }
             if !query.isEmpty {
                 Button { query = "" } label: {
                     Image(systemName: "xmark.circle.fill")
@@ -161,6 +205,7 @@ struct ContentView: View {
                         .font(.caption)
                 }
                 .buttonStyle(.plain)
+                .accessibilityLabel(Text("Clear search"))
             }
         }
         .padding(.horizontal, 9)
@@ -188,7 +233,18 @@ struct ContentView: View {
             List {
                 ForEach(filteredTools) { tool in
                     Section(header: toolSectionHeader(for: tool)) {
-                        if !collapsedTools.contains(tool.id) {
+                        if isSearching || !collapsedTools.contains(tool.id) {
+                            if tool.commands.isEmpty {
+                                Button {
+                                    activeSheet = .addCommand(tool)
+                                } label: {
+                                    Label("Add Command", systemImage: "plus")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+                                .buttonStyle(.plain)
+                                .padding(.vertical, 2)
+                            }
                             ForEach(tool.commands) { command in
                                 CommandRow(
                                     command: command,
@@ -203,6 +259,11 @@ struct ContentView: View {
                                     } label: {
                                         Label("Edit Command", systemImage: "pencil")
                                     }
+                                    Button {
+                                        store.duplicateCommand(command, in: tool)
+                                    } label: {
+                                        Label("Duplicate Command", systemImage: "doc.on.doc")
+                                    }
                                     Divider()
                                     Button(role: .destructive) {
                                         store.deleteCommand(command, from: tool)
@@ -214,6 +275,11 @@ struct ContentView: View {
                             .onDelete { offsets in
                                 offsets.forEach { store.deleteCommand(tool.commands[$0], from: tool) }
                             }
+                            .onMove { source, destination in
+                                if !isSearching {
+                                    store.moveCommands(in: tool, from: source, to: destination)
+                                }
+                            }
                         }
                     }
                 }
@@ -223,7 +289,7 @@ struct ContentView: View {
             }
             .listStyle(.plain)
             .onChange(of: navigator.selectedId) { id in
-                if let id { withAnimation { proxy.scrollTo(id, anchor: .center) } }
+                if let id { proxy.scrollTo(id, anchor: nil) }
             }
         }
     }
@@ -237,6 +303,7 @@ struct ContentView: View {
                 .fill(color)
                 .frame(width: 3, height: 14)
                 .padding(.trailing, 7)
+                .accessibilityHidden(true)
 
             Button {
                 if isCollapsed {
@@ -252,12 +319,14 @@ struct ContentView: View {
             }
             .buttonStyle(.plain)
             .padding(.trailing, 6)
+            .accessibilityLabel(isCollapsed ? Text("Expand \(tool.name)") : Text("Collapse \(tool.name)"))
 
             Image(systemName: tool.icon)
                 .font(.system(size: 12, weight: .semibold))
                 .foregroundColor(color)
                 .frame(width: 16, alignment: .center)
                 .padding(.trailing, 6)
+                .accessibilityHidden(true)
             Text(tool.name)
                 .font(.system(size: 12, weight: .semibold))
                 .foregroundColor(.primary)
@@ -275,6 +344,11 @@ struct ContentView: View {
                 } label: {
                     Label("Edit Tool", systemImage: "pencil")
                 }
+                Button {
+                    store.duplicateTool(tool)
+                } label: {
+                    Label("Duplicate Tool", systemImage: "doc.on.doc")
+                }
                 Divider()
                 Button(role: .destructive) {
                     store.deleteTool(tool)
@@ -288,6 +362,7 @@ struct ContentView: View {
             }
             .menuStyle(.borderlessButton)
             .fixedSize()
+            .accessibilityLabel(Text("Options for \(tool.name)"))
         }
         .padding(.vertical, 2)
     }
@@ -297,6 +372,7 @@ struct ContentView: View {
             Image(systemName: "terminal")
                 .font(.system(size: 36))
                 .foregroundColor(.secondary)
+                .accessibilityHidden(true)
             VStack(spacing: 4) {
                 Text("No tools yet")
                     .font(.headline)
@@ -319,6 +395,7 @@ struct ContentView: View {
             Image(systemName: "magnifyingglass")
                 .font(.system(size: 28))
                 .foregroundColor(.secondary)
+                .accessibilityHidden(true)
             Text("No results for \"\(query)\"")
                 .font(.subheadline)
                 .foregroundColor(.secondary)
@@ -342,6 +419,20 @@ struct ContentView: View {
 
             Spacer()
 
+            Group {
+                if #available(macOS 14.0, *) {
+                    SettingsLink { settingsGearIcon }
+                } else {
+                    Button {
+                        NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
+                        NSApp.activate(ignoringOtherApps: true)
+                    } label: { settingsGearIcon }
+                }
+            }
+            .buttonStyle(.plain)
+            .help("Settings")
+            .accessibilityLabel(Text("Settings"))
+
             Button {
                 if let url = URL(string: "https://github.com/yannickboog/lena/issues") {
                     NSWorkspace.shared.open(url)
@@ -350,6 +441,7 @@ struct ContentView: View {
                 HStack(spacing: 3) {
                     Image(systemName: "exclamationmark.bubble")
                         .font(.caption2)
+                        .accessibilityHidden(true)
                     Text("Report Issue")
                         .font(.caption2)
                 }
@@ -365,13 +457,15 @@ struct ContentView: View {
 
     private func toastView(_ message: String) -> some View {
         HStack(spacing: 6) {
-            Image(systemName: "checkmark.circle.fill")
-                .foregroundColor(.green)
+            Image(systemName: isErrorToast ? "xmark.circle.fill" : "checkmark.circle.fill")
+                .foregroundColor(isErrorToast ? .red : .green)
                 .font(.caption)
+                .accessibilityHidden(true)
             Text(message)
                 .font(.caption)
                 .lineLimit(1)
         }
+        .accessibilityElement(children: .combine)
         .padding(.horizontal, 12)
         .padding(.vertical, 7)
         .background(
@@ -385,449 +479,83 @@ struct ContentView: View {
     private func sheetContent(for sheet: SheetState) -> some View {
         switch sheet {
         case .addTool:
-            ToolFormView(existingTool: nil) { name, icon in
-                store.addTool(name: name, icon: icon)
+            ToolFormView(existingTool: nil) { name, icon, color in
+                store.addTool(name: name, icon: icon, color: color)
             }
         case .editTool(let tool):
-            ToolFormView(existingTool: tool) { name, icon in
-                store.updateTool(tool, name: name, icon: icon)
+            ToolFormView(existingTool: tool) { name, icon, color in
+                store.updateTool(tool, name: name, icon: icon, color: color)
             }
         case .addCommand(let tool):
-            CommandFormView(currentTool: tool, allTools: [], existingCommand: nil) { title, command, note, _ in
-                store.addCommand(to: tool, title: title, command: command, note: note)
+            CommandFormView(currentTool: tool, allTools: store.tools, existingCommand: nil) { title, command, note, raw, targetTool in
+                store.addCommand(to: targetTool, title: title, command: command, note: note, raw: raw)
             }
         case .editCommand(let command, let tool):
-            CommandFormView(currentTool: tool, allTools: store.tools, existingCommand: command) { title, commandText, note, targetTool in
+            CommandFormView(currentTool: tool, allTools: store.tools, existingCommand: command) { title, commandText, note, raw, targetTool in
                 if targetTool.id == tool.id {
-                    store.updateCommand(command, in: tool, title: title, commandText: commandText, note: note)
+                    store.updateCommand(command, in: tool, title: title, commandText: commandText, note: note, raw: raw)
                 } else {
-                    store.moveCommand(command, from: tool, to: targetTool, title: title, commandText: commandText, note: note)
+                    store.moveCommand(command, from: tool, to: targetTool, title: title, commandText: commandText, note: note, raw: raw)
                 }
             }
         }
     }
 
     private func copyToClipboard(_ command: Command) {
-        let placeholders = Self.extractPlaceholders(from: command.command)
+        let placeholders = command.raw ? [] : Self.extractPlaceholders(from: command.command)
         if placeholders.isEmpty {
             NSPasteboard.general.clearContents()
             NSPasteboard.general.setString(command.command, forType: .string)
-            showToast("Copied \"\(command.title)\"")
+            showToast(String(format: NSLocalizedString("Copied \"%@\"", comment: ""), command.title))
         } else {
             placeholderSheet = PlaceholderSheetData(command: command, placeholders: placeholders)
         }
     }
 
-    private static func extractPlaceholders(from text: String) -> [String] {
-        guard let regex = try? NSRegularExpression(pattern: "\\{\\{([^}]+)\\}\\}") else { return [] }
+    private static let placeholderRegex = try? NSRegularExpression(pattern: #"\{\{(.+?)\}\}"#)
+
+    private static func extractPlaceholders(from text: String) -> [PlaceholderSpec] {
+        guard let regex = placeholderRegex else { return [] }
         let ns = text as NSString
         let matches = regex.matches(in: text, range: NSRange(location: 0, length: ns.length))
         var seen = Set<String>()
-        var result: [String] = []
+        var result: [PlaceholderSpec] = []
         for match in matches {
-            let name = ns.substring(with: match.range(at: 1))
-            if seen.insert(name).inserted { result.append(name) }
+            let raw = ns.substring(with: match.range(at: 1))
+            let isOptional = raw.hasSuffix("?")
+            let name = isOptional ? String(raw.dropLast()) : raw
+            guard !name.isEmpty, seen.insert(name).inserted else { continue }
+            result.append(PlaceholderSpec(name: name, isOptional: isOptional))
         }
         return result
     }
-
-    private static let toolPalette: [Color] = [
-        Color(NSColor.systemBlue),
-        Color(NSColor.systemGreen),
-        Color(NSColor.systemOrange),
-        Color(NSColor.systemPurple),
-        Color(NSColor.systemPink),
-        Color(NSColor.systemTeal),
-        Color(NSColor.systemIndigo),
-        Color(NSColor.systemRed),
-        Color(NSColor.systemBrown),
-        Color(NSColor.systemCyan),
-        Color(NSColor.systemMint),
-        Color(NSColor.systemYellow),
-    ]
 
     private func toolColor(for tool: Tool) -> Color {
-        Self.toolPalette[abs(tool.id.hashValue) % Self.toolPalette.count]
+        (tool.color ?? ToolColor.auto(for: tool.id)).swiftUIColor
     }
 
-    private func showToast(_ message: String) {
+    private var settingsGearIcon: some View {
+        Image(systemName: "gearshape")
+            .font(.caption2)
+            .foregroundColor(Color(NSColor.tertiaryLabelColor))
+    }
+
+    private func showToast(_ message: String, isError: Bool = false) {
+        toastTask?.cancel()
+        isErrorToast = isError
         toastMessage = message
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-            toastMessage = nil
-        }
-    }
-}
-
-struct CommandRow: View {
-    let command: Command
-    let isSelected: Bool
-    let onCopy: () -> Void
-
-    var body: some View {
-        Button(action: onCopy) {
-            HStack(alignment: .top, spacing: 10) {
-                VStack(alignment: .leading, spacing: 3) {
-                    Text(command.title)
-                        .font(.system(size: 13, weight: .medium))
-                        .foregroundColor(.primary)
-                    Text(CLISyntaxHighlighter.highlight(command.command))
-                        .lineLimit(2)
-                    if !command.note.isEmpty {
-                        Text(command.note)
-                            .font(.caption2)
-                            .foregroundColor(Color(NSColor.tertiaryLabelColor))
-                            .lineLimit(1)
-                    }
-                }
-                Spacer()
-                Image(systemName: "doc.on.clipboard")
-                    .font(.caption)
-                    .foregroundColor(Color(NSColor.tertiaryLabelColor))
-                    .padding(.top, 2)
-            }
-            .padding(.vertical, 5)
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .background(
-            isSelected ? Color.accentColor.opacity(0.1) : Color.clear,
-            in: RoundedRectangle(cornerRadius: 6)
+        NSAccessibility.post(
+            element: (NSApp.mainWindow ?? NSApp) as Any,
+            notification: .announcementRequested,
+            userInfo: [NSAccessibility.NotificationUserInfoKey.announcement: message]
         )
-    }
-}
-
-struct ToolFormView: View {
-    let existingTool: Tool?
-    let onSave: (String, String) -> Void
-
-    @Environment(\.dismiss) private var dismiss
-    @State private var name: String
-    @State private var selectedIcon: String
-
-    private static let nameLimit = 50
-    private static let icons = [
-        "terminal",              "arrow.triangle.branch", "cloud",        "server.rack",
-        "gearshape",             "hammer",                "cube",         "network",
-        "doc.text",              "folder",                "sparkles",     "bolt",
-        "lock",                  "key",                   "ant",          "wrench",
-        "shippingbox",           "puzzlepiece",           "flame",        "wand.and.stars",
-        "cpu",                   "memorychip",            "externaldrive","internaldrive",
-        "film",                  "waveform",              "photo",        "chart.bar",
-        "person",                "tray",
-    ]
-
-    init(existingTool: Tool?, onSave: @escaping (String, String) -> Void) {
-        self.existingTool = existingTool
-        self.onSave = onSave
-        _name = State(initialValue: existingTool?.name ?? "")
-        _selectedIcon = State(initialValue: existingTool?.icon ?? "terminal")
-    }
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 18) {
-            Text(existingTool == nil ? "New Tool" : "Edit Tool")
-                .font(.headline)
-
-            VStack(alignment: .leading, spacing: 5) {
-                HStack {
-                    Text("Name").font(.caption).foregroundColor(.secondary)
-                    Spacer()
-                    if name.count > Self.nameLimit - 15 {
-                        Text("\(Self.nameLimit - name.count)")
-                            .font(.caption2)
-                            .foregroundColor(name.count >= Self.nameLimit ? .red : .secondary)
-                    }
-                }
-                TextField("e.g. git, Docker, npm", text: $name)
-                    .textFieldStyle(.roundedBorder)
-                    .onChange(of: name) { val in
-                        if val.count > Self.nameLimit { name = String(val.prefix(Self.nameLimit)) }
-                    }
-            }
-
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Icon").font(.caption).foregroundColor(.secondary)
-                LazyVGrid(
-                    columns: Array(repeating: GridItem(.fixed(38), spacing: 8), count: 6),
-                    spacing: 8
-                ) {
-                    ForEach(Self.icons, id: \.self) { symbol in
-                        iconCell(symbol)
-                    }
-                }
-            }
-
-            HStack {
-                Button("Cancel") { dismiss() }
-                Spacer()
-                Button(existingTool == nil ? "Add Tool" : "Save") {
-                    onSave(name.trimmingCharacters(in: .whitespaces), selectedIcon)
-                    dismiss()
-                }
-                .buttonStyle(.borderedProminent)
-                .disabled(name.trimmingCharacters(in: .whitespaces).isEmpty)
+        toastTask = Task {
+            do {
+                try await Task.sleep(nanoseconds: 2_000_000_000)
+                toastMessage = nil
+            } catch {
+                // cancelled — a newer toast is already showing, leave it alone
             }
         }
-        .padding(20)
-        .frame(width: 320)
-    }
-
-    private func iconCell(_ symbol: String) -> some View {
-        let isSelected = selectedIcon == symbol
-        return Image(systemName: symbol)
-            .font(.system(size: 16))
-            .frame(width: 34, height: 34)
-            .background(isSelected ? Color.accentColor.opacity(0.15) : Color(NSColor.controlBackgroundColor))
-            .clipShape(RoundedRectangle(cornerRadius: 7))
-            .overlay(
-                RoundedRectangle(cornerRadius: 7)
-                    .strokeBorder(
-                        isSelected ? Color.accentColor : Color(NSColor.separatorColor),
-                        lineWidth: isSelected ? 1.5 : 0.5
-                    )
-            )
-            .onTapGesture { selectedIcon = symbol }
-    }
-}
-
-struct CommandFormView: View {
-    let currentTool: Tool
-    let allTools: [Tool]
-    let existingCommand: Command?
-    let onSave: (String, String, String, Tool) -> Void
-
-    @Environment(\.dismiss) private var dismiss
-    @State private var title: String
-    @State private var commandText: String
-    @State private var note: String
-    @State private var selectedToolId: UUID
-
-    private static let titleLimit = 80
-    private static let commandLimit = 2000
-    private static let noteLimit = 150
-
-    init(currentTool: Tool, allTools: [Tool], existingCommand: Command?,
-         onSave: @escaping (String, String, String, Tool) -> Void) {
-        self.currentTool = currentTool
-        self.allTools = allTools
-        self.existingCommand = existingCommand
-        self.onSave = onSave
-        _title = State(initialValue: existingCommand?.title ?? "")
-        _commandText = State(initialValue: existingCommand?.command ?? "")
-        _note = State(initialValue: existingCommand?.note ?? "")
-        _selectedToolId = State(initialValue: currentTool.id)
-    }
-
-    private var canSave: Bool {
-        !title.trimmingCharacters(in: .whitespaces).isEmpty &&
-        !commandText.trimmingCharacters(in: .whitespaces).isEmpty
-    }
-
-    private var resolvedTargetTool: Tool {
-        allTools.first(where: { $0.id == selectedToolId }) ?? currentTool
-    }
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            VStack(alignment: .leading, spacing: 2) {
-                Text(existingCommand == nil ? "New Command" : "Edit Command")
-                    .font(.headline)
-                if existingCommand == nil {
-                    Text("Tool: \(currentTool.name)")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-            }
-
-            if existingCommand != nil && allTools.count > 1 {
-                VStack(alignment: .leading, spacing: 5) {
-                    Text("Tool").font(.caption).foregroundColor(.secondary)
-                    Picker("", selection: $selectedToolId) {
-                        ForEach(allTools) { t in
-                            HStack(spacing: 5) {
-                                Image(systemName: t.icon)
-                                Text(t.name)
-                            }
-                            .tag(t.id)
-                        }
-                    }
-                    .labelsHidden()
-                    .pickerStyle(.menu)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                }
-            }
-
-            VStack(alignment: .leading, spacing: 5) {
-                HStack {
-                    Text("Title").font(.caption).foregroundColor(.secondary)
-                    Spacer()
-                    if title.count > Self.titleLimit - 20 {
-                        Text("\(Self.titleLimit - title.count)")
-                            .font(.caption2)
-                            .foregroundColor(title.count >= Self.titleLimit ? .red : .secondary)
-                    }
-                }
-                TextField("e.g. Pretty Log Graph", text: $title)
-                    .textFieldStyle(.roundedBorder)
-                    .onChange(of: title) { val in
-                        if val.count > Self.titleLimit { title = String(val.prefix(Self.titleLimit)) }
-                    }
-            }
-
-            VStack(alignment: .leading, spacing: 5) {
-                HStack {
-                    Text("Command").font(.caption).foregroundColor(.secondary)
-                    Spacer()
-                    if commandText.count > Self.commandLimit - 300 {
-                        Text("\(Self.commandLimit - commandText.count)")
-                            .font(.caption2)
-                            .foregroundColor(commandText.count >= Self.commandLimit ? .red : .secondary)
-                    }
-                }
-                commandEditorView
-            }
-
-            VStack(alignment: .leading, spacing: 5) {
-                HStack {
-                    Text("Note  (optional)").font(.caption).foregroundColor(.secondary)
-                    Spacer()
-                    if note.count > Self.noteLimit - 30 {
-                        Text("\(Self.noteLimit - note.count)")
-                            .font(.caption2)
-                            .foregroundColor(note.count >= Self.noteLimit ? .red : .secondary)
-                    }
-                }
-                TextField("Short hint or description", text: $note)
-                    .textFieldStyle(.roundedBorder)
-                    .onChange(of: note) { val in
-                        if val.count > Self.noteLimit { note = String(val.prefix(Self.noteLimit)) }
-                    }
-            }
-
-            HStack {
-                Button("Cancel") { dismiss() }
-                Spacer()
-                Button(existingCommand == nil ? "Add Command" : "Save") {
-                    onSave(
-                        title.trimmingCharacters(in: .whitespaces),
-                        commandText.trimmingCharacters(in: .whitespaces),
-                        note.trimmingCharacters(in: .whitespaces),
-                        resolvedTargetTool
-                    )
-                    dismiss()
-                }
-                .buttonStyle(.borderedProminent)
-                .disabled(!canSave)
-            }
-        }
-        .padding(20)
-        .frame(width: 360)
-    }
-
-    private var commandEditorView: some View {
-        ZStack(alignment: .topLeading) {
-            SyntaxHighlightingEditor(text: $commandText, limit: Self.commandLimit)
-                .frame(minHeight: 72, maxHeight: 120)
-            if commandText.isEmpty {
-                Text("e.g. git log --graph --pretty=…")
-                    .font(.system(.caption, design: .monospaced))
-                    .foregroundColor(Color(NSColor.placeholderTextColor))
-                    .padding(.horizontal, 9)
-                    .padding(.vertical, 10)
-                    .allowsHitTesting(false)
-            }
-        }
-        .overlay(
-            RoundedRectangle(cornerRadius: 4)
-                .strokeBorder(Color(NSColor.separatorColor), lineWidth: 0.5)
-        )
-    }
-}
-
-struct PlaceholderFillView: View {
-    let command: Command
-    let placeholders: [String]
-    let onCopy: (String) -> Void
-
-    @Environment(\.dismiss) private var dismiss
-    @State private var values: [String: String]
-    @FocusState private var focusedField: String?
-
-    init(command: Command, placeholders: [String], onCopy: @escaping (String) -> Void) {
-        self.command = command
-        self.placeholders = placeholders
-        self.onCopy = onCopy
-        _values = State(initialValue: Dictionary(uniqueKeysWithValues: placeholders.map { ($0, "") }))
-    }
-
-    private var filled: String {
-        var result = command.command
-        for key in placeholders {
-            result = result.replacingOccurrences(of: "{{\(key)}}", with: values[key] ?? "")
-        }
-        return result
-    }
-
-    private var canCopy: Bool {
-        placeholders.allSatisfy { !(values[$0] ?? "").trimmingCharacters(in: .whitespaces).isEmpty }
-    }
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            VStack(alignment: .leading, spacing: 3) {
-                Text("Fill in placeholders")
-                    .font(.headline)
-                Text(command.title)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-            }
-
-            ForEach(placeholders, id: \.self) { key in
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(key)
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    TextField("", text: Binding(
-                        get: { values[key] ?? "" },
-                        set: { values[key] = $0 }
-                    ))
-                    .textFieldStyle(.roundedBorder)
-                    .focused($focusedField, equals: key)
-                    .onSubmit {
-                        let idx = placeholders.firstIndex(of: key) ?? 0
-                        let next = placeholders.indices.contains(idx + 1) ? placeholders[idx + 1] : nil
-                        if let next {
-                            focusedField = next
-                        } else if canCopy {
-                            onCopy(filled)
-                            dismiss()
-                        }
-                    }
-                }
-            }
-
-            Text(filled)
-                .font(.system(.caption, design: .monospaced))
-                .foregroundColor(.secondary)
-                .lineLimit(3)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(8)
-                .background(Color(NSColor.controlBackgroundColor))
-                .clipShape(RoundedRectangle(cornerRadius: 6))
-
-            HStack {
-                Button("Cancel") { dismiss() }
-                Spacer()
-                Button("Copy") {
-                    onCopy(filled)
-                    dismiss()
-                }
-                .buttonStyle(.borderedProminent)
-                .disabled(!canCopy)
-            }
-        }
-        .padding(20)
-        .frame(width: 340)
-        .onAppear { focusedField = placeholders.first }
     }
 }
